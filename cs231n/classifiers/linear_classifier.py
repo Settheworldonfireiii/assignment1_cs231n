@@ -37,21 +37,21 @@ class LinearClassifier(object):
     # Run stochastic gradient descent to optimize W
     loss_history = []
     for it in range(num_iters):
-      X_batch = None
-      y_batch = None
+      
 
       #########################################################################
       # TODO:                                                                 #
-      # Sample batch_size elements from the training data and their           #
-      # corresponding labels to use in this round of gradient descent.        #
+      # Sample batch_size elements from the training data(X) and their           #
+      # corresponding labels(y) (как в X_dev, y_dev) to use in this round of gradient descent.        #
       # Store the data in X_batch and their corresponding labels in           #
       # y_batch; after sampling X_batch should have shape (dim, batch_size)   #
       # and y_batch should have shape (batch_size,)                           #
       #                                                                       #
       # Hint: Use np.random.choice to generate indices. Sampling with         #
-      # replacement is faster than sampling without replacement.              #
+      # replacement(replace=True) is faster than sampling without replacement.              #
       #########################################################################
-      pass
+      X_batch = X[np.random.choice(np.arange(num_train), batch_size)]
+      y_batch = y[np.random.choice(np.arange(num_train), batch_size)]
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -65,7 +65,8 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      pass
+      
+      self.W-=grad*learning_rate
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
