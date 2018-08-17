@@ -80,43 +80,64 @@ class LinearClassifier(object):
     """
     Use the trained weights of this linear classifier to predict labels for
     data points.
+    
+     Inputs:
+     - X: A numpy array of shape (N, D) containing training data; there are N
+       training samples each of dimension D.
 
-    Inputs:
-    - X: A numpy array of shape (N, D) containing training data; there are N
-      training samples each of dimension D.
-
-    Returns:
-    - y_pred: Predicted labels for the data in X. y_pred is a 1-dimensional
+     Returns:
+     - y_pred: Predicted labels for the data in X. y_pred is a 1-dimensional
       array of length N, and each element is an integer giving the predicted
       class.
     """
-    y_pred = np.zeros(X.shape[0])
+    scores= X.dot(self.W)        
+    y_pred = np.argmax(scores, axis=1)
     ###########################################################################
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    pass
+   
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
     return y_pred
   
   def loss(self, X_batch, y_batch, reg):
-    """
-    Compute the loss function and its derivative. 
-    Subclasses will override this.
+      """
+      Structured SVM loss function, vectorized implementation.
 
-    Inputs:
-    - X_batch: A numpy array of shape (N, D) containing a minibatch of N
-      data points; each point has dimension D.
-    - y_batch: A numpy array of shape (N,) containing labels for the minibatch.
-    - reg: (float) regularization strength.
+      Inputs and outputs are the same as svm_loss_naive.
+      """
+      loss = 0.0
+      dW = np.zeros(W.shape) # initialize the gradient as zero
+      num_classes = W.shape[1]
+      num_train = X.shape[0]
 
-    Returns: A tuple containing:
-    - loss as a single float
-    - gradient with respect to self.W; an array of the same shape as W
-    """
-    pass
+      #############################################################################
+      # TODO:                                                                     #
+      # Implement a vectorized version of the structured SVM loss, storing the    #
+      # result in loss.                                                           #
+      #############################################################################
+      scores = X.dot(W)
+      x = np.arange(num_train)
+      #фильтруем, выбирая лишь нужные классы  
+      correct_class_score = scores[x, y]
+      margins = np.maximum(scores - correct_class_score.reshape(num_train, 1) + 1.0, 0)
+      margins[x, y] = 0
+  
+      loss = np.sum(margins)/ num_train
+
+      # Add regularization to the loss.
+      loss +=0.5* reg * np.sum(W * W)
+
+  
+      mrgns1 = np.zeros(margins.shape)
+      mrgns1[margins>0] = 1
+      mrgns1[x, y] -= np.sum(mrgns1, axis=1)
+      dW = X.T.dot(mrgns1)
+      dW /= num_train
+      dW += reg * W 
+      return loss, dW
 
 
 class LinearSVM(LinearClassifier):
