@@ -36,22 +36,22 @@ class LinearClassifier(object):
 
     # Run stochastic gradient descent to optimize W
     loss_history = []
-    for it in range(num_iters):
+    for i in range(num_iters):
       
-
       #########################################################################
       # TODO:                                                                 #
-      # Sample batch_size elements from the training data(X) and their           #
-      # corresponding labels(y) (как в X_dev, y_dev) to use in this round of gradient descent.        #
+      # Sample batch_size elements from the training data and their           #
+      # corresponding labels to use in this round of gradient descent.        #
       # Store the data in X_batch and their corresponding labels in           #
       # y_batch; after sampling X_batch should have shape (dim, batch_size)   #
       # and y_batch should have shape (batch_size,)                           #
       #                                                                       #
       # Hint: Use np.random.choice to generate indices. Sampling with         #
-      # replacement(replace=True) is faster than sampling without replacement.              #
+      # replacement is faster than sampling without replacement.              #
       #########################################################################
-      X_batch = X[np.random.choice(np.arange(num_train), batch_size)]
-      y_batch = y[np.random.choice(np.arange(num_train), batch_size)]
+      indicies = np.random.choice(range(num_train),batch_size,replace = True)
+      X_batch = np.array(X[indicies])
+      y_batch = np.array(y[indicies])
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -65,14 +65,13 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      
-      self.W-=grad*learning_rate
+      self.W -= grad*learning_rate
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
 
-      if verbose and it % 100 == 0:
-        print('iteration %d / %d: loss %f' % (it, num_iters, loss))
+      if verbose and i % 100 == 0:
+        print('iteration %d / %d: loss %f' % (i, num_iters, loss))
 
     return loss_history
 
