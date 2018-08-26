@@ -67,7 +67,7 @@ class TwoLayerNet(object):
     W1, b1 = self.params['W1'], self.params['b1']
     W2, b2 = self.params['W2'], self.params['b2']
     N, D = X.shape
-
+    
     # Compute the forward pass
     scores = None
     #############################################################################
@@ -75,7 +75,9 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    scores_intermediate = X.dot(W1)+b1 
+    rell = np.maximum(scores_intermediate,0)
+    scores = rell.dot(W2)+b2
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -83,7 +85,7 @@ class TwoLayerNet(object):
     # If the targets are not given then jump out, we're done
     if y is None:
       return scores
-
+    
     # Compute the loss
     loss = None
     #############################################################################
@@ -92,7 +94,19 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
+    #нормализую, ради численной стабильности
+    sc1 = scores - (np.max(scores,axis = 1)).reshape(N,1)
+    
+    #вот она самая, функция софтмакс
+    softmax = np.exp(sc1) / (np.sum(np.exp(sc1),axis=1).reshape(N,1))
+    
+    correct_scores = sc1[range(N), y]
+    loss = np.sum(np.log(np.sum(np.exp(sc1), axis = 1)) - correct_scores)
+    loss /= N  
+    loss+=  reg*np.sum(W1 * W1)+reg*np.sum(W2*W2)
+    # Compute the loss
+    
+   
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -104,11 +118,28 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+    d_step_1 = softmax 
+    #обратное этому действу loss = np.sum(np.log(np.sum(np.exp(sc1), axis = 1)) - correct_scores)
+    d_step_1[range(N), y] -= 1
+    #(X.dot(W1)+b1 > 0)  - отсеивающий роутер, там, где очки меньше единицы - зануляется
+    #опять же, умножаю на W2 потому, что умножение - это дистрибьюшн роутер
+    d_step_2 = d_step_1.dot( W2.T) * (X.dot(W1)+b1 > 0)  
+    
+    
+    #rell и X потому, что умножение - это distribution router
+    #суммируем по b2 и b1 потому, что по исходящим ветвям из нода суммируется
+    grads['W2'] = rell.T.dot(d_step_1) /N   
+    grads['b2'] = np.sum(d_step_1, axis=0) / N     
+    grads['W1'] = X.T.dot(d_step_2) / N       
+    grads['b1'] = np.sum(d_step_2, axis=0) / N   
+    
+    # add reg term
+    
+    grads['W2'] += 2*reg * W2
+    grads['W1'] += 2*reg * W1
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-
     return loss, grads
 
   def train(self, X, y, X_val, y_val,
@@ -148,7 +179,9 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      indicies = np.random.choice(range(num_train),batch_size,replace = True)
+      X_batch = np.array(X[indicies])
+      y_batch = np.array(y[indicies])
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -163,7 +196,11 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      self.params['W1'] -= grads['W1']*learning_rate
+      self.params['W2'] -= grads['W2']*learning_rate
+      self.params['b1'] -= grads['b1']*learning_rate
+      self.params['b2'] -= grads['b2']*learning_rate 
+       
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -189,8 +226,7 @@ class TwoLayerNet(object):
     }
 
   def predict(self, X):
-    """
-    Use the trained weights of this two-layer network to predict labels for
+    """Use the trained weights of this two-layer network to predict labels for
     data points. For each data point we predict scores for each of the C
     classes, and assign each data point to the class with the highest score.
 
@@ -203,12 +239,16 @@ class TwoLayerNet(object):
       the elements of X. For all i, y_pred[i] = c means that X[i] is predicted
       to have class c, where 0 <= c < C.
     """
+    
     y_pred = None
 
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    scores_intermediate = X.dot(self.params['W1'])+self.params['b1'] 
+    rell = np.maximum(scores_intermediate,0)
+    scores = rell.dot(self.params['W2'])+self.params['b2'] 
+    y_pred = np.argmax(scores, axis=1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################

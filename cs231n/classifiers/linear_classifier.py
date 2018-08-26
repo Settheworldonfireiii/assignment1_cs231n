@@ -121,7 +121,11 @@ class LinearClassifier(object):
       x = np.arange(num_train)
       #фильтруем, выбирая лишь нужные классы  
       correct_class_score = scores[x, y]
+      #отнимаю от всех очков правильные очки и прибавляя 1(можно взять другое число)
+      #получая меру того, насколько больше очки некоего неправильно классифицированного
+      #класса, чем правильного.
       margins = np.maximum(scores - correct_class_score.reshape(num_train, 1) + 1.0, 0)
+      #зануляю правильные очки, чтобы не плюсовать их к мере неправильности нынешних весов
       margins[x, y] = 0
   
       loss = np.sum(margins)/ num_train
