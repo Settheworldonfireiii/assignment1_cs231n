@@ -59,7 +59,10 @@ class LinearClassifier(object):
       # evaluate loss and gradient
       loss, grad = self.loss(X_batch, y_batch, reg)
       loss_history.append(loss)
-
+      #learning rate decay
+      lr_decay = 0.998
+      #learning_rate = learning_rate*lr_decay
+      #print(learning_rate)
       # perform parameter update
       #########################################################################
       # TODO:                                                                 #
